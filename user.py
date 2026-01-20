@@ -5,17 +5,15 @@ class User:
     #current user session obj
     session = None
 
-    def __init__(self, firstName, lastName, username, password, UID, isAdmin=False):
+    def __init__(self, firstName, lastName, username, password, UID=None, isAdmin=False):
         self.firstName = firstName.title() #correctly format names and usernames
         self.lastName = lastName.title()
         self.username = username.lower()
 
         #hash password if not already hashed
         if isinstance(password, bytes):#hash password if not already hashed
-            print("ALR HASHED")
             self.password = password
         else:
-            print("NOT HASHED")
             self.password = self._hash_password(password)
 
         self.UID = UID
@@ -31,5 +29,3 @@ class User:
     #check param password against stored hashed password in provided user obj
     def check_password(self, password):
         return bcrypt.checkpw(password.encode("utf-8"), self.password)
-    
-    #check password, isadmin, 

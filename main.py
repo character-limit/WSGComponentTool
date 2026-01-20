@@ -28,6 +28,7 @@ def login_page():
 
     if UserDB.check_login(username, password):
         print("Successful login!")
+        print(f"Welcome, {User.session.firstName}!")
     else:
         print("Login failed.")
 
@@ -39,7 +40,7 @@ def create_user_page():
     username = input("Username: ")
     password = input("Password: ")
 
-    user = User(firstName, lastName, username, password, UserDB.gen_UID())
+    user = User(firstName, lastName, username, password)
 
     try:
         UserDB.add_user(user)
