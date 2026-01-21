@@ -29,11 +29,14 @@ class App(tk.Tk):
 
         container.pack(side="top", fill="both", expand=True)
 
+        self.geometry("900x600")
+        self.minsize(900,600)
+
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         self.frames = {}
 
-        for F in (LoginPage, DashboardPage):
+        for F in (LoginPage, DashboardPage, InventoryPage, StockPage, AdminPage):
             frame = F(container, self)
             self.frames[F.__name__] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -58,7 +61,7 @@ class LoginPage(tk.Frame):
         self.username_entry = tk.Entry(self)
         self.username_entry.pack()
 
-        tk.Label(self, text="Password").pack()
+        tk.Label(self, text="Password:").pack()
         self.password_entry = tk.Entry(self, show="*")
         self.password_entry.pack()
 
@@ -81,11 +84,132 @@ class DashboardPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        label = tk.Label(self, text="Dashboard", font=("Helvetica", 16))
-        label.pack(pady=10, padx=10)
+        #set self controller for use in methods
+        self.controller = controller
+        controller.title("Dashboard")
 
-        button1 = tk.Button(self, text="Go to Login Page", command=lambda:controller.show_frame("LoginPage"))
-        button1.pack()
+        #HEADER - inc back, title, and logout buttons
+        head_frame = tk.Frame(self)
+        head_frame.pack(side="top", fill="x", padx=10, pady=1)
+        head_frame.grid_columnconfigure(1, weight=1)
+
+        btn_back = tk.Button(head_frame, text="Back", command=self.back)
+        btn_back.grid(row=0, column=0, sticky="w")#left
+
+        self.title_label = tk.Label(head_frame, text="Dashboard")
+        self.title_label.grid(row=0, column=1)#centre
+
+        btn_logout = tk.Button(head_frame, text="Logout", command=self.logout)
+        btn_logout.grid(row=0, column=2, sticky="e")#right
+
+        #MENU BUTTONS - inventory, stock monitor, admin settings
+        center_frame = tk.Frame(self)
+        center_frame.place(relx=0.5, rely=0.5, anchor="center")
+
+        btn_inventory = tk.Button(center_frame, text="Manage\nInventory", width=30, height=13, command=self.open_inventory)
+        btn_inventory.grid(row=0, column=0, padx=10)
+
+        btn_stock = tk.Button(center_frame, text="Stock\nMonitor", width=30, height=13, command=self.open_stock_monitor)
+        btn_stock.grid(row=0, column=1, padx=10)
+
+        self.btn_admin = tk.Button(center_frame, text="Admin\nSettings", width=30, height=13, command=self.open_admin_settings)
+        self.btn_admin.grid(row=0, column=2, padx=10)
+
+    def logout(self):
+        self.controller.show_frame("LoginPage")
+
+    def back(self):
+        pass
+
+    def open_inventory(self):
+        self.controller.show_frame("InventoryPage")
+
+    def open_stock_monitor(self):
+        self.controller.show_frame("StockPage")
+    
+    def open_admin_settings(self):
+        if User.session.isAdmin:
+            self.controller.show_frame("AdminPage")
+        else:
+            messagebox.showerror("Action Failed", "This menu requires elevated permissions, please contact the system manager for more information.")
+
+    #update elements when frame is raised
+    def tkraise(self, *args, **kwargs):
+        super().tkraise(*args, **kwargs)
+
+        self.title_label.config(text=f"Dashboard - {User.session.username}") #update username when raising frame
+
+        """ if User.session.isAdmin == True:
+            self.btn_admin.config(state="normal")
+        else:
+            self.btn_admin.config(state="disabled") """
+
+class InventoryPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        #set self controller for use in methods
+        self.controller = controller
+        controller.title("Inventory Management")
+
+        #HEADER - inc back, title, and logout buttons
+        head_frame = tk.Frame(self)
+        head_frame.pack(side="top", fill="x", padx=10, pady=1)
+        head_frame.grid_columnconfigure(1, weight=1)
+
+        btn_back = tk.Button(head_frame, text="Back", command=self.back)
+        btn_back.grid(row=0, column=0, sticky="w")#left
+
+        self.title_label = tk.Label(head_frame, text="Inventory Management")
+        self.title_label.grid(row=0, column=1)#centre
+
+    def back(self):
+        self.controller.show_frame("DashboardPage")
+
+
+class StockPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        #set self controller for use in methods
+        self.controller = controller
+        controller.title("Stock Monitor")
+
+        #HEADER - inc back, title, and logout buttons
+        head_frame = tk.Frame(self)
+        head_frame.pack(side="top", fill="x", padx=10, pady=1)
+        head_frame.grid_columnconfigure(1, weight=1)
+
+        btn_back = tk.Button(head_frame, text="Back", command=self.back)
+        btn_back.grid(row=0, column=0, sticky="w")#left
+
+        self.title_label = tk.Label(head_frame, text="Stock Monitor") 
+        self.title_label.grid(row=0, column=1)#centre
+
+    def back(self):
+        self.controller.show_frame("DashboardPage")
+
+class AdminPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        #set self controller for use in methods
+        self.controller = controller
+        controller.title("Admin Settings")
+
+        #HEADER - inc back, title, and logout buttons
+        head_frame = tk.Frame(self)
+        head_frame.pack(side="top", fill="x", padx=10, pady=1)
+        head_frame.grid_columnconfigure(1, weight=1)
+
+        btn_back = tk.Button(head_frame, text="Back", command=self.back)
+        btn_back.grid(row=0, column=0, sticky="w")#left
+
+        self.title_label = tk.Label(head_frame, text="Admin Settings")
+        self.title_label.grid(row=0, column=1)#centre
+
+    def back(self):
+        self.controller.show_frame("DashboardPage")
 
 
 if __name__ == "__main__":
