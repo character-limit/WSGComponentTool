@@ -197,13 +197,16 @@ class InventoryPage(tk.Frame):
         self.tree.pack(side="left", fill="both", expand=True)
         scollbar.pack(side="right", fill="y")
 
-        #HEADER - inc back, title, and logout buttons
+        #bottom buttons (delete item, add)
         buttons_frame = tk.Frame(self)
         buttons_frame.pack(side="bottom", fill="x", padx=10, pady=1)
         buttons_frame.grid_columnconfigure(1, weight=1)
 
-        btn_back = tk.Button(buttons_frame, text="Delete Selected Item", command=self.deleteItem)
-        btn_back.grid(row=0, column=0, sticky="w")#left
+        btn_delete = tk.Button(buttons_frame, text="Delete Selected Item", command=self.deleteItem)
+        btn_delete.grid(row=0, column=0, sticky="w", padx=5)#left
+
+        btn_add = tk.Button(buttons_frame, text="Add New Item", command=self.addItem)
+        btn_add.grid(row=0, column=1, sticky="w", padx=5)#left
 
 
     def back(self):
@@ -221,6 +224,9 @@ class InventoryPage(tk.Frame):
             print(f"Deleting item with ID: {item_id}")
         else:
             messagebox.showwarning("No Selection", "Please select an item to delete.")
+
+    def addItem(self):
+        print("Adding new item HERE")
 
 
 class StockPage(tk.Frame):
