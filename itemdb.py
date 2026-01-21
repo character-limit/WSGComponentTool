@@ -33,6 +33,11 @@ class ItemDB:
         self.conn.execute("DELETE FROM items WHERE ID = ?", (itemID,))
         self.conn.commit()
         return cursor.rowcount >0
+    
+    def edit_item(self, item: Item): #edit existing item
+        #? and tuple to prevent SQL injection
+        self.conn.execute("UPDATE items SET name = ?, location = ?, quantity = ?, minQuantity = ? WHERE ID = ?", (item.name, item.location, item.quantity, item.minQuantity, item.ID))
+        self.conn.commit()
 
     def get_items(self, term):
         cursor = self.conn.cursor()
@@ -44,4 +49,15 @@ class ItemDB:
         rows = cursor.fetchall()
         if rows: #if item found, create and return obj - index is in order of select statement.
             return [Item(row[0], row[1], row[2], row[3], row[4]) for row in rows]
+        return None #ret none if not found
+    
+    def get_item(self, ID):
+        cursor = self.conn.cursor()
+
+        #select the item with the matching ID
+        cursor.execute("SELECT name, location, quantity, ID, minQuantity FROM items WHERE ID = ?", (ID,))
+        
+        row = cursor.fetchone()
+        if row: #if item found, create and return obj - index is in order of select statement.
+            return Item(row[0], row[1], row[2], row[3], row[4])
         return None #ret none if not found

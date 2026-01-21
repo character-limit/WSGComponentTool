@@ -207,8 +207,11 @@ class InventoryPage(tk.Frame):
         btn_delete = tk.Button(buttons_frame, text="Delete Selected Item", command=self.deleteItem)
         btn_delete.grid(row=0, column=0, sticky="w", padx=5)#left
 
+        btn_edit = tk.Button(buttons_frame, text="Edit Selected Item", command=self.editItem)
+        btn_edit.grid(row=0, column=1, sticky="w", padx=5)#left
+
         btn_add = tk.Button(buttons_frame, text="Add New Item", command=self.addItem)
-        btn_add.grid(row=0, column=1, sticky="w", padx=5)#left
+        btn_add.grid(row=0, column=2, sticky="w", padx=5)#left
 
     def back(self):
         self.controller.show_frame("DashboardPage")
@@ -241,6 +244,62 @@ class InventoryPage(tk.Frame):
         else:
             messagebox.showwarning("No Selection", "Please select an item to delete.")
 
+    def editItem(self):
+
+        selected_item = self.tree.selection()
+        if selected_item:
+            item_id = self.tree.item(selected_item)["values"][3]#get id
+            selected = ItemDB().get_item(item_id)#get item
+
+            #pu
+            add_popup = tk.Toplevel(self)
+            add_popup.title("Edit Item")
+            add_popup.geometry("300x400")
+            add_popup.grab_set()
+
+            tk.Label(add_popup, text="Item Name:").pack(pady=5)
+            name_entry = tk.Entry(add_popup)
+            name_entry.pack()
+
+            tk.Label(add_popup, text="Item Location:").pack(pady=5)
+            location_entry = tk.Entry(add_popup)
+            location_entry.pack()
+
+            tk.Label(add_popup, text="Item Quantity:").pack(pady=5)
+            quantity_entry = tk.Entry(add_popup)    
+            quantity_entry.pack()
+
+            #prefill data
+            name_entry.insert(0, selected.name)
+            location_entry.insert(0, selected.location)
+            quantity_entry.insert(0, selected.quantity)
+        else:
+            messagebox.showwarning("No Selection", "Please select an item to edit.")
+
+        def submit():
+            name = name_entry.get()
+            location = location_entry.get()
+            quantity = quantity_entry.get()
+            
+            try:
+                quantity = int(quantity)
+            except ValueError:
+                messagebox.showerror("Invalid Input", "Quantity must be a number between 0 and 9999.")
+                return
+            
+            if not name or not location or quantity < 0 or quantity > 9999:
+                messagebox.showerror("Invalid Input", "Please provide valid item details.")
+                return
+
+            selected.name = name
+            selected.location = location
+            selected.quantity = int(quantity)
+            ItemDB().edit_item(selected)
+            messagebox.showinfo("Success", f"Item '{selected.name}' edited successfully.")
+            add_popup.destroy()
+            self.refresh_table()
+
+        tk.Button(add_popup, text="Submit", command=submit, bg="green", fg="white").pack(pady=20)
     def refresh_table(self):
         self.search_entry.delete(0, tk.END)#clear search bar
 
