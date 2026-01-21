@@ -3,6 +3,8 @@ from tkinter import ttk
 from tkinter import messagebox
 from user import User
 from userdb import UserDB
+from item import Item
+from itemdb import ItemDB
 
 
 """ window = tk.Tk()
@@ -208,14 +210,24 @@ class InventoryPage(tk.Frame):
         btn_add = tk.Button(buttons_frame, text="Add New Item", command=self.addItem)
         btn_add.grid(row=0, column=1, sticky="w", padx=5)#left
 
-
     def back(self):
         self.controller.show_frame("DashboardPage")
 
     def search(self, event):
         query = self.search_entry.get()
-        #implement search functionality here
-        print(f"Searching for: {query}")
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+
+        items = ItemDB().get_items(query)
+
+        if items:
+            for item in items:
+                self.tree.insert("", tk.END, values=(
+                    item.name, 
+                    item.quantity, 
+                    item.location, 
+                    item.ID
+                ))
 
     def deleteItem(self):
         selected_item = self.tree.selection()
@@ -225,8 +237,65 @@ class InventoryPage(tk.Frame):
         else:
             messagebox.showwarning("No Selection", "Please select an item to delete.")
 
+    def refresh_table(self):
+        self.search_entry.delete(0, tk.END)#clear search bar
+
+        for row in self.tree.get_children():
+            self.tree.delete(row)#clear all rows
+        
+        items = ItemDB().get_items("")  #get all items
+
+        if items:
+            for item in items:
+                self.tree.insert("", tk.END, values=(item.name, item.quantity, item.location, item.ID))
+
+    def tkraise(self, *args, **kwargs):
+        super().tkraise(*args, **kwargs)
+        self.refresh_table()
+
     def addItem(self):
-        print("Adding new item HERE")
+        #pu
+        add_popup = tk.Toplevel(self)
+        add_popup.title("Add New Item")
+        add_popup.geometry("300x400")
+        add_popup.grab_set()
+
+        tk.Label(add_popup, text="Item Name:").pack(pady=5)
+        name_entry = tk.Entry(add_popup)
+        name_entry.pack()
+
+        tk.Label(add_popup, text="Item Location:").pack(pady=5)
+        location_entry = tk.Entry(add_popup)
+        location_entry.pack()
+
+        tk.Label(add_popup, text="Item Quantity:").pack(pady=5)
+        quantity_entry = tk.Entry(add_popup)    
+        quantity_entry.pack()
+
+        def submit():
+            name = name_entry.get()
+            location = location_entry.get()
+            quantity = quantity_entry.get()
+            
+            try:
+                quantity = int(quantity)
+            except ValueError:
+                messagebox.showerror("Invalid Input", "Quantity must be a number between 0 and 9999.")
+                return
+            
+            if not name or not location or quantity < 0 or quantity > 9999:
+                messagebox.showerror("Invalid Input", "Please provide valid item details.")
+                return
+
+            new_item = Item(name, location, int(quantity))
+            ItemDB().add_item(new_item)
+
+            messagebox.showinfo("Success", f"Item '{name}' added successfully.")
+            add_popup.destroy()
+            self.refresh_table()
+
+        tk.Button(add_popup, text="Submit", command=submit, bg="green", fg="white").pack(pady=20)
+
 
 
 class StockPage(tk.Frame):
