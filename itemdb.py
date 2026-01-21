@@ -26,6 +26,13 @@ class ItemDB:
         item.ID = cursor.lastrowid #set item ID to new one genned by sql
         self.conn.commit()
         return item
+    
+    def remove_item(self, itemID): #add item obj to db
+        cursor = self.conn.cursor()
+        #? and tuple to prevent SQL injection
+        self.conn.execute("DELETE FROM items WHERE ID = ?", (itemID,))
+        self.conn.commit()
+        return cursor.rowcount >0
 
     def get_items(self, term):
         cursor = self.conn.cursor()

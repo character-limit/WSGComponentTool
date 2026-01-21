@@ -233,7 +233,11 @@ class InventoryPage(tk.Frame):
         selected_item = self.tree.selection()
         if selected_item:
             item_id = self.tree.item(selected_item)["values"][3]#get id
-            print(f"Deleting item with ID: {item_id}")
+            item_name = self.tree.item(selected_item)["values"][0]
+            confirm = messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete '{item_name}'?")
+            if confirm:
+                ItemDB().remove_item(item_id)
+                self.refresh_table()
         else:
             messagebox.showwarning("No Selection", "Please select an item to delete.")
 
