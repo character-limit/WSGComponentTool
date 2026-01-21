@@ -26,7 +26,7 @@ def login_page():
     username = input("Username: ").lower()
     password = input("Password: ")
 
-    if UserDB.check_login(username, password):
+    if db.check_login(username, password):
         print("Successful login!")
         print(f"Welcome, {User.session.firstName}!")
     else:
@@ -43,12 +43,12 @@ def create_user_page():
     user = User(firstName, lastName, username, password)
 
     try:
-        UserDB.add_user(user)
+        db.add_user(user)
         print("User created")
     except Exception as e:
         print(f"Error creating user: {e}")
 
 if __name__ == "__main__":
 
-    UserDB = UserDB()
+    db = UserDB()
     title_page()
