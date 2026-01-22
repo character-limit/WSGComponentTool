@@ -39,7 +39,7 @@ class App(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
         self.frames = {}
 
-        for F in (LoginPage, DashboardPage, InventoryPage, StockPage, AdminPage):
+        for F in (LoginPage, DashboardPage, InventoryPage, StockPage, AdminPage, UserManagePage, AuditPage):
             frame = F(container, self)
             self.frames[F.__name__] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -271,7 +271,7 @@ class InventoryPage(tk.Frame):
             messagebox.showinfo("Success", f"Item '{selected.name}' edited successfully.")
             add_popup.destroy()
             self.refresh_table()
-            
+
         selected_item = self.tree.selection()
         if selected_item:
             item_id = self.tree.item(selected_item)["values"][3]#get id
@@ -405,18 +405,16 @@ class InventoryPage(tk.Frame):
 
         tk.Button(add_popup, text="Submit", command=submit, bg="green", fg="white").pack(pady=20)
 
-
-
 class StockPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+        self.low_stock_only = tk.BooleanVar()
 
         #set self controller for use in methods
         self.controller = controller
         controller.title("Stock Monitor")
 
-
-        #HEADER - inc back, title, and logout buttons
+        #HEADER - inc back, title
         head_frame = tk.Frame(self)
         head_frame.pack(side="top", fill="x", padx=10, pady=1)
         head_frame.grid_columnconfigure(1, weight=1)
@@ -424,11 +422,46 @@ class StockPage(tk.Frame):
         btn_back = tk.Button(head_frame, text="Back", command=self.back)
         btn_back.grid(row=0, column=0, sticky="w")#left
 
-        self.title_label = tk.Label(head_frame, text="Stock Monitor") 
+        self.title_label = tk.Label(head_frame, text="Stock Monitor")
         self.title_label.grid(row=0, column=1)#centre
+
+        #Restock radio check  
+        search_frame = tk.Frame(self)
+        search_frame.pack(side="top", fill="x", padx=10, pady=5)
+
+        self.low_only = tk.Checkbutton(search_frame, text="Show Low Stock Only", variable=self.low_stock_only, command=self.refresh_table)
+        self.low_only.pack(pady=5,anchor="w")
+
+        #TABLE
+        table_frame = tk.Frame(self)
+        table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        Columns = ["Name", "Quantity", "Threshold", "Location", "Item ID"]
+        self.tree = ttk.Treeview(table_frame, columns=Columns, show="headings")
+
+        self.tree.heading("Name", text="Name")
+        self.tree.heading("Quantity", text="Quantity")
+        self.tree.heading("Threshold", text="Threshold")
+        self.tree.heading("Location", text="Location")
+        self.tree.heading("Item ID", text="Item ID")
+
+        self.tree.column("Name", width=250, anchor="center")
+        self.tree.column("Quantity", width=100, anchor="center")
+        self.tree.column("Threshold", width=100, anchor="center")
+        self.tree.column("Location", width=150, anchor="center")
+        self.tree.column("Item ID", width=100, anchor="center")
+
+        scollbar = tk.Scrollbar(table_frame, orient="vertical", command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scollbar.set)
+
+        self.tree.pack(side="left", fill="both", expand=True)
+        scollbar.pack(side="right", fill="y")
 
     def back(self):
         self.controller.show_frame("DashboardPage")
+    
+    def refresh_table(self):
+        pass
 
 class AdminPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -438,6 +471,55 @@ class AdminPage(tk.Frame):
         self.controller = controller
         controller.title("Admin Settings")
 
+        #HEADER - inc back, title, and logout buttons
+        head_frame = tk.Frame(self)
+        head_frame.pack(side="top", fill="x", padx=10, pady=1)
+        head_frame.grid_columnconfigure(1, weight=1)
+
+        btn_back = tk.Button(head_frame, text="Back", command=self.back)
+        btn_back.grid(row=0, column=0, sticky="w")#left
+
+        self.title_label = tk.Label(head_frame, text="Admin Dashboard")
+        self.title_label.grid(row=0, column=1)#centre
+
+        #MENU BUTTONS - manage users, audit logs
+        center_frame = tk.Frame(self)
+        center_frame.place(relx=0.5, rely=0.5, anchor="center")
+
+        btn_inventory = tk.Button(center_frame, text="Manage\nUsers", width=30, height=13, command=self.open_users)
+        btn_inventory.grid(row=0, column=0, padx=10)
+
+        btn_stock = tk.Button(center_frame, text="Audit\nLogs", width=30, height=13, command=self.open_audit)
+        btn_stock.grid(row=0, column=1, padx=10)
+
+    def back(self):
+        self.controller.show_frame("DashboardPage")
+
+    def open_users(self):
+        self.controller.show_frame("UserManagePage")
+
+    def open_audit(self):
+        self.controller.show_frame("AuditPage")
+
+    
+    #update elements when frame is raised
+    def tkraise(self, *args, **kwargs):
+        super().tkraise(*args, **kwargs)
+
+        self.title_label.config(text=f"Dashboard - {User.session.username}") #update username when raising frame
+
+        """ if User.session.isAdmin == True:
+            self.btn_admin.config(state="normal")
+        else:
+            self.btn_admin.config(state="disabled") """
+
+class UserManagePage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        #set self controller for use in methods
+        self.controller = controller
+        controller.title("User Management")
 
         #HEADER - inc back, title, and logout buttons
         head_frame = tk.Frame(self)
@@ -447,12 +529,101 @@ class AdminPage(tk.Frame):
         btn_back = tk.Button(head_frame, text="Back", command=self.back)
         btn_back.grid(row=0, column=0, sticky="w")#left
 
-        self.title_label = tk.Label(head_frame, text="Admin Settings")
+        self.title_label = tk.Label(head_frame, text="User Management")
         self.title_label.grid(row=0, column=1)#centre
 
-    def back(self):
-        self.controller.show_frame("DashboardPage")
+        #TABLE
+        table_frame = tk.Frame(self)
+        table_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
+        Columns = ["Username", "Name", "Admin"]
+        self.tree = ttk.Treeview(table_frame, columns=Columns, show="headings")
+
+        self.tree.heading("Username", text="Username")
+        self.tree.heading("Name", text="Name")
+        self.tree.heading("Admin", text="Admin")
+
+        self.tree.column("Username", width=200, anchor="center")
+        self.tree.column("Name", width=200, anchor="center")
+        self.tree.column("Admin", width=50, anchor="center")
+
+        scollbar = tk.Scrollbar(table_frame, orient="vertical", command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scollbar.set)
+
+        self.tree.pack(side="left", fill="both", expand=True)
+        scollbar.pack(side="right", fill="y")
+
+        #bottom buttons (add user, promote to admin, demote, lock account)
+        buttons_frame = tk.Frame(self)
+        buttons_frame.pack(side="bottom", fill="x", padx=10, pady=1)
+        buttons_frame.grid_columnconfigure(1, weight=1)
+
+        btn_create = tk.Button(buttons_frame, text="Create User", command=self.createUser)
+        btn_create.grid(row=0, column=0, sticky="w", padx=5)#left
+
+        btn_lock = tk.Button(buttons_frame, text="Lock Account", command=self.lockUser)
+        btn_lock.grid(row=0, column=1, sticky="w", padx=5)#left
+
+        btn_promote = tk.Button(buttons_frame, text="Promote (Admin)", command=self.promoteUser)
+        btn_promote.grid(row=0, column=2, sticky="w", padx=5)#left
+
+        btn_demote = tk.Button(buttons_frame, text="Demote (User)", command=self.demoteUser)
+        btn_demote.grid(row=0, column=3, sticky="w", padx=5)#left
+
+    def back(self):
+        self.controller.show_frame("AdminPage")
+
+    def createUser(self):
+        pass
+    def lockUser(self):
+        pass    
+    def promoteUser(self):
+        pass
+    def demoteUser(self):
+        pass
+
+class AuditPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        #set self controller for use in methods
+        self.controller = controller
+        controller.title("Audit Logs")
+
+        #HEADER - inc back, title, and logout buttons
+        head_frame = tk.Frame(self)
+        head_frame.pack(side="top", fill="x", padx=10, pady=1)
+        head_frame.grid_columnconfigure(1, weight=1)
+
+        btn_back = tk.Button(head_frame, text="Back", command=self.back)
+        btn_back.grid(row=0, column=0, sticky="w")#left
+
+        self.title_label = tk.Label(head_frame, text="Audit Logs")
+        self.title_label.grid(row=0, column=1)#centre
+
+        #TABLE
+        table_frame = tk.Frame(self)
+        table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        Columns = ["Action", "Username", "Time"]
+        self.tree = ttk.Treeview(table_frame, columns=Columns, show="headings")
+
+        self.tree.heading("Action", text="Action")
+        self.tree.heading("Username", text="Username")
+        self.tree.heading("Time", text="Time")
+
+        self.tree.column("Action", width=400, anchor="center")
+        self.tree.column("Username", width=100, anchor="center")
+        self.tree.column("Time", width=100, anchor="center")
+
+        scollbar = tk.Scrollbar(table_frame, orient="vertical", command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scollbar.set)
+
+        self.tree.pack(side="left", fill="both", expand=True)
+        scollbar.pack(side="right", fill="y")
+
+    def back(self):
+        self.controller.show_frame("AdminPage")
 
 if __name__ == "__main__":
     app = App()
