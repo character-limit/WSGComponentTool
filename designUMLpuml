@@ -1,0 +1,123 @@
+@startuml
+package GUI {
+
+    class App {
+        -frames
+        +show_frame(frame)
+      }
+    
+    class LoginPage {
+        +login()
+        +exit()
+      }
+    
+      class ManageUsersPage{
+        +create_user()
+        +lock_user()
+        +edit_user(new_admin_status)
+        +refresh_table()
+        +back()
+      }
+    
+      class InventoryPage {
+        +search(term)
+        +add_item()
+        +delete_item()
+        +edit_item()
+        +create_alert()
+        +refresh_table()
+        +back()
+      }
+    
+      class StockAlertPage{
+        +refresh_table()
+        +back()
+      }
+      
+      class AuditPage{
+        +refresh_table()
+        +back()
+      }
+      
+      class AdminDashboard{
+        +open_users()
+        +open_audit()
+        +back()
+      }
+      
+      class DashboardPage{
+        +open_inventory()
+        +open_stock_alerts()
+        +open_admin_dash()
+        +logout()
+      }
+      
+      
+}
+
+package Logic {
+
+    class Item {
+        -name
+        -location
+        -quantity
+        -ID
+        -minQuantity
+      }
+    
+    class User {
+        -firstName
+        -lastName
+        -username
+        -password
+        -UID
+        -isAdmin
+        +check_password(pass)
+      }
+      
+    class Audit {
+        -actionDescription
+        -UID
+        -timeStamp
+      }
+      
+    class ItemDB {
+        +get_items()
+        +search_items(term)
+        +add_item(Item)
+        +edit_item(Item)
+        +remove_item(Item)
+      }
+    
+    class UserDB {
+        +get_user(UID)
+        +check_login(username, password)
+        +add_user(User)
+        +edit_user(User)
+        +remove_user(User)
+      }
+    class AuditDB {
+        +get_audits()
+        +add_audit(Audit)
+      }  
+}
+
+App -- LoginPage
+App -- DashboardPage
+App -- InventoryPage
+App -- AdminDashboard
+App -- AuditPage
+App -- ManageUsersPage
+App -- StockAlertPage
+
+ItemDB --> Item
+UserDB --> User
+AuditDB --> Audit
+AuditPage --> AuditDB
+InventoryPage --> AuditDB
+LoginPage --> UserDB
+InventoryPage --> ItemDB
+StockAlertPage --> ItemDB
+ManageUsersPage --> UserDB
+
+@enduml
