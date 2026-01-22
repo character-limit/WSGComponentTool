@@ -213,6 +213,10 @@ class InventoryPage(tk.Frame):
         btn_add = tk.Button(buttons_frame, text="Add New Item", command=self.addItem)
         btn_add.grid(row=0, column=2, sticky="w", padx=5)#left
 
+        btn_alert = tk.Button(buttons_frame, text="Create Stock Alert for Selected Item", command=self.createAlert)
+        btn_alert.grid(row=0, column=3, sticky="w", padx=5)#left
+
+
     def back(self):
         self.controller.show_frame("DashboardPage")
 
@@ -245,7 +249,29 @@ class InventoryPage(tk.Frame):
             messagebox.showwarning("No Selection", "Please select an item to delete.")
 
     def editItem(self):
+        def submit():
+            name = name_entry.get()
+            location = location_entry.get()
+            quantity = quantity_entry.get()
+            
+            try:
+                quantity = int(quantity)
+            except ValueError:
+                messagebox.showerror("Invalid Input", "Quantity must be a number between 0 and 9999.")
+                return
+            
+            if not name or not location or quantity < 0 or quantity > 9999:
+                messagebox.showerror("Invalid Input", "Please provide valid item details.")
+                return
 
+            selected.name = name
+            selected.location = location
+            selected.quantity = int(quantity)
+            ItemDB().edit_item(selected)
+            messagebox.showinfo("Success", f"Item '{selected.name}' edited successfully.")
+            add_popup.destroy()
+            self.refresh_table()
+            
         selected_item = self.tree.selection()
         if selected_item:
             item_id = self.tree.item(selected_item)["values"][3]#get id
@@ -273,33 +299,53 @@ class InventoryPage(tk.Frame):
             name_entry.insert(0, selected.name)
             location_entry.insert(0, selected.location)
             quantity_entry.insert(0, selected.quantity)
+
+            tk.Button(add_popup, text="Submit", command=submit, bg="green", fg="white").pack(pady=20)
         else:
             messagebox.showwarning("No Selection", "Please select an item to edit.")
 
+    def createAlert(self):
+        
         def submit():
-            name = name_entry.get()
-            location = location_entry.get()
-            quantity = quantity_entry.get()
+            low_quantity = low_quantity_entry.get()
             
             try:
-                quantity = int(quantity)
+                low_quantity = int(low_quantity)
             except ValueError:
                 messagebox.showerror("Invalid Input", "Quantity must be a number between 0 and 9999.")
                 return
             
-            if not name or not location or quantity < 0 or quantity > 9999:
-                messagebox.showerror("Invalid Input", "Please provide valid item details.")
+            if  low_quantity < 0 or low_quantity > 9999:
+                messagebox.showerror("Invalid Input", "Quantity must be a number between 0 and 9999.")
                 return
 
-            selected.name = name
-            selected.location = location
-            selected.quantity = int(quantity)
+            selected.minQuantity = low_quantity
+
             ItemDB().edit_item(selected)
-            messagebox.showinfo("Success", f"Item '{selected.name}' edited successfully.")
+            messagebox.showinfo("Success", f"Low stock alert created for item '{selected.name}'!")
             add_popup.destroy()
             self.refresh_table()
 
-        tk.Button(add_popup, text="Submit", command=submit, bg="green", fg="white").pack(pady=20)
+
+        selected_item = self.tree.selection()
+        if selected_item:
+            item_id = self.tree.item(selected_item)["values"][3]#get id
+            selected = ItemDB().get_item(item_id)#get item
+
+            #pu
+            add_popup = tk.Toplevel(self)
+            add_popup.title(f"Create Stock Alert - {selected.name}, Current Qty: {selected.quantity}")
+            add_popup.geometry("300x400")
+            add_popup.grab_set()
+
+            tk.Label(add_popup, text="Low Stock Alert Quantity:").pack(pady=5)
+            low_quantity_entry = tk.Entry(add_popup)    
+            low_quantity_entry.pack()
+
+            tk.Button(add_popup, text="Create Low Stock Alert", command=submit, bg="green", fg="white").pack(pady=20)
+        else:
+            messagebox.showwarning("No Selection", "Please select an item to create an alert.")
+
     def refresh_table(self):
         self.search_entry.delete(0, tk.END)#clear search bar
 
