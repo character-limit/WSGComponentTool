@@ -51,6 +51,20 @@ class ItemDB:
             return [Item(row[0], row[1], row[2], row[3], row[4]) for row in rows]
         return None #ret none if not found
     
+    def get_items_monitoring(self, lowStockOnly = False):
+        cursor = self.conn.cursor()
+
+        #select the item with the matching ID or name
+        if lowStockOnly:
+            cursor.execute("SELECT name, location, quantity, ID, minQuantity FROM items WHERE quantity <= minQuantity AND minQuantity != -1")
+        else:
+            cursor.execute("SELECT name, location, quantity, ID, minQuantity FROM items WHERE minQuantity != -1")
+        
+        rows = cursor.fetchall()
+        if rows: #if item found, create and return obj - index is in order of select statement.
+            return [Item(row[0], row[1], row[2], row[3], row[4]) for row in rows]
+        return None #ret none if not found
+    
     def get_item(self, ID):
         cursor = self.conn.cursor()
 

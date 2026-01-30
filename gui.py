@@ -1,10 +1,14 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from audit import Audit
+import audit
+from auditdb import AuditDB
 from user import User
 from userdb import UserDB
 from item import Item
 from itemdb import ItemDB
+import datetime
 
 
 """ window = tk.Tk()
@@ -244,6 +248,15 @@ class InventoryPage(tk.Frame):
             item_name = self.tree.item(selected_item)["values"][0]
             confirm = messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete '{item_name}'?")
             if confirm:
+                #CREATE AUDIT FOR Deleting ITEM.
+                templog = Audit(f"Deleted item: {item_name} - ID: {item_id}", 
+                                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
+                                User.session.UID
+                                )
+                
+                #SAVE AUDIT
+                AuditDB().add_audit(templog)
+
                 ItemDB().remove_item(item_id)
                 self.refresh_table()
         else:
@@ -264,6 +277,15 @@ class InventoryPage(tk.Frame):
             if not name or not location or quantity < 0 or quantity > 9999:
                 messagebox.showerror("Invalid Input", "Please provide valid item details.")
                 return
+
+            #CREATE AUDIT FOR Editing ITEM.
+            templog = Audit(f"Edited item: {selected.name} - ID: {selected.ID}. Old Values - Name: {selected.name}, Location: {selected.location}, Quantity: {selected.quantity}. New Values - Name: {name}, Location: {location}, Quantity: {quantity}", 
+                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
+                            User.session.UID
+                            )
+            
+            #SAVE AUDIT
+            AuditDB().add_audit(templog)
 
             selected.name = name
             selected.location = location
@@ -319,6 +341,15 @@ class InventoryPage(tk.Frame):
             if  low_quantity < 0 or low_quantity > 9999:
                 messagebox.showerror("Invalid Input", "Quantity must be a number between 0 and 9999.")
                 return
+
+            #CREATE AUDIT FOR ADDING ITEM.
+            templog = Audit(f"Edited low stock alert for item: {selected.name}, New Threshold: {low_quantity}, Old Threshold: {selected.minQuantity}", 
+                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
+                            User.session.UID
+                            )
+            
+            #SAVE AUDIT
+            AuditDB().add_audit(templog)
 
             selected.minQuantity = low_quantity
 
@@ -401,6 +432,15 @@ class InventoryPage(tk.Frame):
             new_item = Item(name, location, int(quantity))
             ItemDB().add_item(new_item)
 
+            #CREATE AUDIT FOR ADDING ITEM.
+            templog = Audit(f"Added new item: {name}, Location: {location}, Quantity: {quantity}", 
+                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
+                            User.session.UID
+                            )
+            
+            #SAVE AUDIT
+            AuditDB().add_audit(templog)
+
             messagebox.showinfo("Success", f"Item '{name}' added successfully.")
             add_popup.destroy()
             self.refresh_table()
@@ -463,7 +503,18 @@ class StockPage(tk.Frame):
         self.controller.show_frame("DashboardPage")
     
     def refresh_table(self):
-        pass
+        for row in self.tree.get_children():
+            self.tree.delete(row)#clear all rows
+
+        items = ItemDB().get_items_monitoring(self.low_stock_only.get())  #get items, low stock only if checked on gui
+
+        if items:
+            for item in items:
+                self.tree.insert("", tk.END, values=(item.name, item.quantity, item.minQuantity, item.location, item.ID))
+
+    def tkraise(self, *args, **kwargs):
+        super().tkraise(*args, **kwargs)
+        self.refresh_table()
 
 class AdminPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -699,7 +750,6 @@ class UserManagePage(tk.Frame):
             self.refresh_table()
         else:
             messagebox.showwarning("No Selection", "Please select a user to demote.")
-
 
 class AuditPage(tk.Frame):
     def __init__(self, parent, controller):
