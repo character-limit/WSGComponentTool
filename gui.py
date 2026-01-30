@@ -794,6 +794,21 @@ class AuditPage(tk.Frame):
     def back(self):
         self.controller.show_frame("AdminPage")
 
+    def refresh_table(self):
+        for row in self.tree.get_children():
+            self.tree.delete(row)#clear all rows
+
+        audits = AuditDB().get_audits()  #get all audits
+
+        if audits:
+            for audit in audits:
+                self.tree.insert("", tk.END, values=(audit.description, audit.userID, audit.timestamp))
+
+    #refresh table upon opening page.
+    def tkraise(self, *args, **kwargs):
+        super().tkraise(*args, **kwargs)
+        self.refresh_table()
+
 if __name__ == "__main__":
     app = App()
     app.mainloop()  
