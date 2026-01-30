@@ -358,6 +358,7 @@ class InventoryPage(tk.Frame):
             for item in items:
                 self.tree.insert("", tk.END, values=(item.name, item.quantity, item.location, item.ID))
 
+    #refresh table upon opening page.
     def tkraise(self, *args, **kwargs):
         super().tkraise(*args, **kwargs)
         self.refresh_table()
@@ -573,14 +574,116 @@ class UserManagePage(tk.Frame):
     def back(self):
         self.controller.show_frame("AdminPage")
 
+    def refresh_table(self):
+        for row in self.tree.get_children():
+            self.tree.delete(row) # clear all rows
+
+        users = UserDB().get_users()  #get all users
+
+        if users:
+            for user in users:
+                self.tree.insert("", tk.END, values=(user.username, user.firstName + " " + user.lastName, user.isAdmin))
+
+    #refresh table upon opening page.
+    def tkraise(self, *args, **kwargs):
+        super().tkraise(*args, **kwargs)
+        self.refresh_table()
+
     def createUser(self):
-        pass
+        #popup
+        add_popup = tk.Toplevel(self)
+        add_popup.title("Create User")
+        add_popup.geometry("300x400")
+        add_popup.grab_set()
+
+        tk.Label(add_popup, text="First Name:").pack(pady=5)
+        first_name_entry = tk.Entry(add_popup)    
+        first_name_entry.pack()
+
+        tk.Label(add_popup, text="Last Name:").pack(pady=5)
+        last_name_entry = tk.Entry(add_popup)    
+        last_name_entry.pack()
+
+
+        tk.Label(add_popup, text="Username:").pack(pady=5)
+        username_entry = tk.Entry(add_popup)
+        username_entry.pack()
+
+        tk.Label(add_popup, text="Password:").pack(pady=5)
+        password_entry = tk.Entry(add_popup)
+        password_entry.pack()
+
+        def submit():
+            #get entries
+            first_name = first_name_entry.get()
+            last_name = last_name_entry.get()
+            username = username_entry.get()
+            password = password_entry.get()
+            
+            try:
+                #validate they are of type string
+                username = str(username)
+                password = str(password)
+            except ValueError:
+                messagebox.showerror("Invalid Input", "Username or Password must be valid.")
+                return
+
+            #validate lengths. firstname and last name presence check.
+            if len(username) < 3 or not first_name or not last_name or len(password) < 8:
+                messagebox.showerror("Invalid Input", "Please provide valid user. Username must be at least 3 characters and password at least 8 characters.")
+                return
+
+            #create user
+            new_user = User(first_name, last_name, username, password)
+            UserDB().add_user(new_user)
+
+            messagebox.showinfo("Success", f"User '{username}' created successfully.")
+            add_popup.destroy()
+            self.refresh_table()
+
+        tk.Button(add_popup, text="Submit", command=submit, bg="green", fg="white").pack(pady=20)
+
     def lockUser(self):
         pass    
+
     def promoteUser(self):
-        pass
+        selected_user = self.tree.selection()
+        if selected_user:
+            username = self.tree.item(selected_user)["values"][0]#get username
+            selected = UserDB().get_user(username)#get user
+
+            if selected.isAdmin:
+                messagebox.showinfo("Error", f"User '{selected.username}' is already an admin.")
+                return
+
+            selected.isAdmin = True
+
+            UserDB().edit_user(selected)
+
+            messagebox.showinfo("Success", f"User '{selected.username}' promoted to admin successfully.")
+            self.refresh_table()
+        else:
+            messagebox.showwarning("No Selection", "Please select a user to promote.")
+
     def demoteUser(self):
-        pass
+        selected_user = self.tree.selection()
+        if selected_user:
+            username = self.tree.item(selected_user)["values"][0]#get username
+            selected = UserDB().get_user(username)#get user
+
+            if not selected.isAdmin:
+                messagebox.showinfo("Error", f"User '{selected.username}' is already demoted.")
+                return
+
+            selected.isAdmin = False
+
+            UserDB().edit_user(selected)
+
+            messagebox.showinfo("Success", f"User '{selected.username}' demoted successfully.")
+            self.refresh_table()
+        else:
+            messagebox.showwarning("No Selection", "Please select a user to demote.")
+
 
 class AuditPage(tk.Frame):
     def __init__(self, parent, controller):

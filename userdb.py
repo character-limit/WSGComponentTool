@@ -36,6 +36,17 @@ class UserDB:
             return User(row[0], row[1], row[5], row[2], row[3], bool(row[4]))
         return None #ret none if not found
     
+    def get_users(self):
+        cursor = self.conn.cursor()
+
+        #select the item with the matching ID or name
+        cursor.execute("SELECT firstName, lastName, password, UID, admin, username FROM users ")
+        
+        rows = cursor.fetchall()
+        if rows: #if item found, create and return obj - index is in order of select statement.
+            return [User(row[0], row[1], row[5], row[2], row[3], bool(row[4])) for row in rows]
+        return None #ret none if not found
+
     #check usename and password, return boolean for success
     def check_login(self, username, password) -> bool:
         user = self.get_user(username)
@@ -44,6 +55,11 @@ class UserDB:
             User.session = user
             return True
         return False
+
+    def edit_user(self, user: User): #edit existing user
+        #? and tuple to prevent SQL injection
+        self.conn.execute("UPDATE users SET firstName = ?, lastName = ?, password = ?, admin = ? WHERE username = ?", (user.firstName, user.lastName, user.password, int(user.isAdmin), user.username))
+        self.conn.commit()
 
     #gen unique uid for new user
     def gen_UID(self) -> str:
