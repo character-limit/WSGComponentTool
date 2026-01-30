@@ -77,11 +77,12 @@ class LoginPage(tk.Frame):
         password = self.password_entry.get()
         
         #if correct, update user session and naviagte to dashboard. Else show error
-        if UserDB().check_login(username, password):
+        if UserDB().check_login(username, password) == 1:
             self.controller.show_frame("DashboardPage")
-        else:
+        elif UserDB().check_login(username, password) == 0:
             messagebox.showerror("Login Failed", "Invalid username or password.")
-        
+        elif UserDB().check_login(username, password) == -1:
+            messagebox.showerror("Account Locked", "Your account has been irreversibly locked. Please contact the system administrator for more information.")
 
 class DashboardPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -644,7 +645,22 @@ class UserManagePage(tk.Frame):
         tk.Button(add_popup, text="Submit", command=submit, bg="green", fg="white").pack(pady=20)
 
     def lockUser(self):
-        pass    
+        selected_user = self.tree.selection()
+        if selected_user:
+            username = self.tree.item(selected_user)["values"][0]#get username
+            selected = UserDB().get_user(username)#get user
+
+            if not messagebox.askokcancel("Confirm Lock", f"Are you sure you want to lock the account for '{selected.username}'? This action cannot be undone."):
+                return
+
+            selected.password = b"lockedlockedlocked!"
+
+            UserDB().edit_user(selected)
+
+            messagebox.showinfo("Success", f"User '{selected.username}' locked successfully.")
+            self.refresh_table()
+        else:
+            messagebox.showwarning("No Selection", "Please select a user to promote.")   
 
     def promoteUser(self):
         selected_user = self.tree.selection()

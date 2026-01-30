@@ -48,13 +48,16 @@ class UserDB:
         return None #ret none if not found
 
     #check usename and password, return boolean for success
-    def check_login(self, username, password) -> bool:
-        user = self.get_user(username)
-        #if exists and password matches
-        if user and user.check_password(password):
-            User.session = user
-            return True
-        return False
+    def check_login(self, username, password) -> int:
+        try:
+            user = self.get_user(username)
+            #if exists and password matches
+            if user and user.check_password(password):
+                User.session = user
+                return 1
+            return 0
+        except Exception:
+            return -1
 
     def edit_user(self, user: User): #edit existing user
         #? and tuple to prevent SQL injection
