@@ -9,26 +9,7 @@ from userdb import UserDB
 from item import Item
 from itemdb import ItemDB
 import datetime
-
-
-""" window = tk.Tk()
-window.title("WSG Component Tool")
-window.geometry("900x600")
-
-tk.Label(window, text="Username:").pack()
-username_entry = tk.Entry(window)
-username_entry.pack()
-
-
-tk.Label(window, text="Password:").pack()
-password_entry = tk.Entry(window, show="*")
-password_entry.pack()
-
-tk.Button(window, text="Login", command=login).pack(pady=15)
-
-
-window.mainloop() """
-
+""" Class to manage the GUI application """
 class App(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
@@ -54,6 +35,7 @@ class App(tk.Tk):
         frame = self.frames[cont]
         frame.tkraise()
 
+""" Class to hold the login page and its associated methods """
 class LoginPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -88,6 +70,7 @@ class LoginPage(tk.Frame):
         elif UserDB().check_login(username, password) == -1:
             messagebox.showerror("Account Locked", "Your account has been irreversibly locked. Please contact the system administrator for more information.")
 
+""" Class to hold the dashboard page and its associated methods """
 class DashboardPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -100,9 +83,6 @@ class DashboardPage(tk.Frame):
         head_frame = tk.Frame(self)
         head_frame.pack(side="top", fill="x", padx=10, pady=1)
         head_frame.grid_columnconfigure(1, weight=1)
-
-        btn_back = tk.Button(head_frame, text="Back", command=self.back)
-        btn_back.grid(row=0, column=0, sticky="w")#left
 
         self.title_label = tk.Label(head_frame, text="Dashboard")
         self.title_label.grid(row=0, column=1)#centre
@@ -123,18 +103,19 @@ class DashboardPage(tk.Frame):
         self.btn_admin = tk.Button(center_frame, text="Admin\nSettings", width=30, height=13, command=self.open_admin_settings)
         self.btn_admin.grid(row=0, column=2, padx=10)
 
+    #method for then logout button is pressed
     def logout(self):
         self.controller.show_frame("LoginPage")
 
-    def back(self):
-        pass
-
+    #method for when inventory button is pressed
     def open_inventory(self):
         self.controller.show_frame("InventoryPage")
 
+    #method for when stock monitor button is pressed
     def open_stock_monitor(self):
         self.controller.show_frame("StockPage")
     
+    #method for when admin settings button is pressed
     def open_admin_settings(self):
         if User.session.isAdmin:
             self.controller.show_frame("AdminPage")
@@ -152,6 +133,7 @@ class DashboardPage(tk.Frame):
         else:
             self.btn_admin.config(state="disabled") """
 
+""" Class to hold the inventory management page and its associated methods """
 class InventoryPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -221,10 +203,11 @@ class InventoryPage(tk.Frame):
         btn_alert = tk.Button(buttons_frame, text="Create Stock Alert for Selected Item", command=self.createAlert)
         btn_alert.grid(row=0, column=3, sticky="w", padx=5)#left
 
-
+    #manage back button pressed.
     def back(self):
         self.controller.show_frame("DashboardPage")
 
+    #method to manage searches
     def search(self, event):
         query = self.search_entry.get()
         for row in self.tree.get_children():
@@ -241,6 +224,7 @@ class InventoryPage(tk.Frame):
                     item.ID
                 ))
 
+    #method to delete items.
     def deleteItem(self):
         selected_item = self.tree.selection()
         if selected_item:
@@ -256,18 +240,20 @@ class InventoryPage(tk.Frame):
                 
                 #SAVE AUDIT
                 AuditDB().add_audit(templog)
-
                 ItemDB().remove_item(item_id)
                 self.refresh_table()
         else:
             messagebox.showwarning("No Selection", "Please select an item to delete.")
 
+    #method to edit items.
     def editItem(self):
         def submit():
+            #get entiries from fields.
             name = name_entry.get()
             location = location_entry.get()
             quantity = quantity_entry.get()
             
+            #validation
             try:
                 quantity = int(quantity)
             except ValueError:
@@ -286,7 +272,6 @@ class InventoryPage(tk.Frame):
             
             #SAVE AUDIT
             AuditDB().add_audit(templog)
-
             selected.name = name
             selected.location = location
             selected.quantity = int(quantity)
@@ -295,12 +280,13 @@ class InventoryPage(tk.Frame):
             add_popup.destroy()
             self.refresh_table()
 
+        #get selected item
         selected_item = self.tree.selection()
-        if selected_item:
+        if selected_item: #validate an item is selected
             item_id = self.tree.item(selected_item)["values"][3]#get id
             selected = ItemDB().get_item(item_id)#get item
 
-            #pu
+            #popup to edit item
             add_popup = tk.Toplevel(self)
             add_popup.title("Edit Item")
             add_popup.geometry("300x400")
@@ -655,7 +641,6 @@ class UserManagePage(tk.Frame):
         tk.Label(add_popup, text="Last Name:").pack(pady=5)
         last_name_entry = tk.Entry(add_popup)    
         last_name_entry.pack()
-
 
         tk.Label(add_popup, text="Username:").pack(pady=5)
         username_entry = tk.Entry(add_popup)
