@@ -4,8 +4,8 @@ from item import Item
 
 class ItemDB:
 
-    def __init__(self):
-        self.conn = sqlite3.connect("items.db") #connect to db file
+    def __init__(self, path="items.db"):
+        self.conn = sqlite3.connect(path) #connect to db file
         self.create_table()   
 
     def create_table(self): #create item table if its not already existing
