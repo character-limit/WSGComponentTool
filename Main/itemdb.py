@@ -1,5 +1,5 @@
 import sqlite3
-from item import Item
+from Main.item import Item
 
 
 class ItemDB:

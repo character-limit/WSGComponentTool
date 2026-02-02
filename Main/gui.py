@@ -1,13 +1,13 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-from audit import Audit
-import audit
-from auditdb import AuditDB
-from user import User
-from userdb import UserDB
-from item import Item
-from itemdb import ItemDB
+from Main.audit import Audit
+import Main.audit as audit
+from Main.auditdb import AuditDB
+from Main.user import User
+from Main.userdb import UserDB
+from Main.item import Item
+from Main.itemdb import ItemDB
 import datetime
 """ Class to manage the GUI application """
 class App(tk.Tk):

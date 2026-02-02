@@ -1,6 +1,6 @@
 import sqlite3
-from audit import Audit
-from user import User
+from Main.audit import Audit
+from Main.user import User
 
 
 class AuditDB:

@@ -1,6 +1,6 @@
 import unittest
-import itemdb
-from item import Item
+import Main.itemdb as itemdb
+from Main.item import Item
 
 class TestItemDBMethods(unittest.TestCase):
 

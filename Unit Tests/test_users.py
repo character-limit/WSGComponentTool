@@ -1,5 +1,5 @@
 import unittest
-import user
+import Main.user as user
 
 class TestUserMethods(unittest.TestCase):
 
