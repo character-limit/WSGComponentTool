@@ -1,10 +1,13 @@
 import sqlite3
-from Main.item import Item
+import os
+from item import Item
 
 
 class ItemDB:
 
-    def __init__(self, path="items.db"):
+    def __init__(self, path=None):
+        if path is None:
+            path = os.path.join(os.path.dirname(__file__), "..", "Databases", "items.db")
         self.conn = sqlite3.connect(path) #connect to db file
         self.create_table()   
 

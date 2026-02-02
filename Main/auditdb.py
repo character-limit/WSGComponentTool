@@ -1,12 +1,14 @@
 import sqlite3
-from Main.audit import Audit
-from Main.user import User
+import os
+from audit import Audit
+from user import User
 
 
 class AuditDB:
 
     def __init__(self):
-        self.conn = sqlite3.connect("audit.db") #connect to db file
+        db_path = os.path.join(os.path.dirname(__file__), "..", "Databases", "audit.db")
+        self.conn = sqlite3.connect(db_path) #connect to db file
         self.create_table()   
 
     def create_table(self): #create users table if its not already existing
