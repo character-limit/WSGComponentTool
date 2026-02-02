@@ -210,12 +210,12 @@ class InventoryPage(tk.Frame):
     #method to manage searches
     def search(self, event):
         query = self.search_entry.get()
-        for row in self.tree.get_children():
+        for row in self.tree.get_children(): #clear the table
             self.tree.delete(row)
 
-        items = ItemDB().get_items(query)
+        items = ItemDB().get_items(query) #get items matching search term
 
-        if items:
+        if items: #if items found tghen populate table
             for item in items:
                 self.tree.insert("", tk.END, values=(
                     item.name, 
@@ -226,11 +226,11 @@ class InventoryPage(tk.Frame):
 
     #method to delete items.
     def deleteItem(self):
-        selected_item = self.tree.selection()
-        if selected_item:
+        selected_item = self.tree.selection()#get selected item
+        if selected_item: #if selected item
             item_id = self.tree.item(selected_item)["values"][3]#get id
             item_name = self.tree.item(selected_item)["values"][0]
-            confirm = messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete '{item_name}'?")
+            confirm = messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete '{item_name}'?")#confirmation popup
             if confirm:
                 #CREATE AUDIT FOR Deleting ITEM.
                 templog = Audit(f"Deleted item: {item_name} - ID: {item_id}", 
@@ -242,7 +242,7 @@ class InventoryPage(tk.Frame):
                 AuditDB().add_audit(templog)
                 ItemDB().remove_item(item_id)
                 self.refresh_table()
-        else:
+        else: #if not selected show error message
             messagebox.showwarning("No Selection", "Please select an item to delete.")
 
     #method to edit items.
@@ -253,13 +253,14 @@ class InventoryPage(tk.Frame):
             location = location_entry.get()
             quantity = quantity_entry.get()
             
-            #validation
+            #validation of quanitity type check
             try:
                 quantity = int(quantity)
             except ValueError:
                 messagebox.showerror("Invalid Input", "Quantity must be a number between 0 and 9999.")
                 return
             
+            #range and presence checks
             if not name or not location or quantity < 0 or quantity > 9999:
                 messagebox.showerror("Invalid Input", "Please provide valid item details.")
                 return
@@ -276,7 +277,7 @@ class InventoryPage(tk.Frame):
             selected.location = location
             selected.quantity = int(quantity)
             ItemDB().edit_item(selected)
-            messagebox.showinfo("Success", f"Item '{selected.name}' edited successfully.")
+            messagebox.showinfo("Success", f"Item '{selected.name}' edited successfully.") #confirmation popup
             add_popup.destroy()
             self.refresh_table()
 
@@ -433,6 +434,7 @@ class InventoryPage(tk.Frame):
 
         tk.Button(add_popup, text="Submit", command=submit, bg="green", fg="white").pack(pady=20)
 
+""" Class to hold the stock page and its associated methods """
 class StockPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -502,6 +504,7 @@ class StockPage(tk.Frame):
         super().tkraise(*args, **kwargs)
         self.refresh_table()
 
+""" Class to hold the admin dashboard page and its associated methods """
 class AdminPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -552,6 +555,7 @@ class AdminPage(tk.Frame):
         else:
             self.btn_admin.config(state="disabled") """
 
+""" Class to hold the user management page and its associated methods """
 class UserManagePage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -736,6 +740,7 @@ class UserManagePage(tk.Frame):
         else:
             messagebox.showwarning("No Selection", "Please select a user to demote.")
 
+""" Class to hold the audit page and its associated methods """
 class AuditPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
