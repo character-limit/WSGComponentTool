@@ -315,30 +315,30 @@ class InventoryPage(tk.Frame):
 
     def createAlert(self):
         
-        def submit():
-            low_quantity = low_quantity_entry.get()
+        def submit(): #submit button press for creating alert.
+            low_quantity = low_quantity_entry.get() #get low stock threshold from entry field.
             
+            #Validation. 
             try:
-                low_quantity = int(low_quantity)
+                low_quantity = int(low_quantity)#Try to parse to int, for type check.
             except ValueError:
-                messagebox.showerror("Invalid Input", "Quantity must be a number between 0 and 9999.")
+                messagebox.showerror("Invalid Input", "Quantity must be a number between 0 and 9999.") #error message if type check fails.
                 return
             
-            if  low_quantity < 0 or low_quantity > 9999:
-                messagebox.showerror("Invalid Input", "Quantity must be a number between 0 and 9999.")
+            if  low_quantity < 0 or low_quantity > 9999: #range check quantity is between 0 and 9999
+                messagebox.showerror("Invalid Input", "Quantity must be a number between 0 and 9999.") #error message if range check fails.
                 return
 
             #CREATE AUDIT FOR ADDING ITEM.
             templog = Audit(f"Edited low stock alert for item: {selected.name}, New Threshold: {low_quantity}, Old Threshold: {selected.minQuantity}", 
-                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
-                            User.session.UID
+                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), #get current timestamp
+                            User.session.UID    #get current userID (FK for audit log)
                             )
             
             #SAVE AUDIT
             AuditDB().add_audit(templog)
 
-            selected.minQuantity = low_quantity
-
+            selected.minQuantity = low_quantity #set new stock alert threshold
             ItemDB().edit_item(selected)
             messagebox.showinfo("Success", f"Low stock alert created for item '{selected.name}'!")
             add_popup.destroy()
@@ -651,30 +651,30 @@ class UserManagePage(tk.Frame):
         password_entry.pack()
 
         def submit():
-            #get entries
+            #get entries from fields.
             first_name = first_name_entry.get()
             last_name = last_name_entry.get()
             username = username_entry.get()
             password = password_entry.get()
             
             try:
-                #validate they are of type string
+                #validate they are of type string using try catch in type conversion.
                 username = str(username)
                 password = str(password)
             except ValueError:
-                messagebox.showerror("Invalid Input", "Username or Password must be valid.")
+                messagebox.showerror("Invalid Input", "Username or Password must be valid.") #error message if wrong type provided.
                 return
 
             #validate lengths. firstname and last name presence check.
-            if len(username) < 3 or not first_name or not last_name or len(password) < 8:
+            if len(username) < 3 or not first_name or not last_name or len(password) < 8: #show error message if range/presence check fails. 
                 messagebox.showerror("Invalid Input", "Please provide valid user. Username must be at least 3 characters and password at least 8 characters.")
                 return
 
-            #create user
+            #create user object
             new_user = User(first_name, last_name, username, password)
-            UserDB().add_user(new_user)
+            UserDB().add_user(new_user) #save new user to db
 
-            messagebox.showinfo("Success", f"User '{username}' created successfully.")
+            messagebox.showinfo("Success", f"User '{username}' created successfully.") #confirmation popup
             add_popup.destroy()
             self.refresh_table()
 

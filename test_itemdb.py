@@ -4,6 +4,7 @@ from item import Item
 
 class TestItemDBMethods(unittest.TestCase):
 
+    #test adding an item to the db and retrieving it.
     def test_add_item(self):
         db = itemdb.ItemDB(":memory:")
         item = Item("Item123", "Shelf A", 67)
@@ -15,6 +16,7 @@ class TestItemDBMethods(unittest.TestCase):
         self.assertEqual(check.name, "Item123")
         self.assertEqual(check.quantity, 67)
 
+    #test removing an item from the db
     def test_remove_item(self):
         db = itemdb.ItemDB(":memory:")
         item = Item("Item123", "Shelf A", 67)
@@ -27,6 +29,7 @@ class TestItemDBMethods(unittest.TestCase):
         self.assertIsNotNone(check1)
         self.assertIsNone(check2)
 
+    #test getting an item from the db
     def test_get_item(self):
         db = itemdb.ItemDB(":memory:")
         item = Item("Item123", "Shelf A", 67)
@@ -38,6 +41,7 @@ class TestItemDBMethods(unittest.TestCase):
         self.assertEqual(check.name, "Item123")
         self.assertEqual(check.quantity, 67)
 
+    #test searching for items in the db
     def test_search_items(self):
         db = itemdb.ItemDB(":memory:")
         item1 = Item("Item123", "Shelf A", 67)

@@ -23,9 +23,9 @@ class ItemDB:
         cursor = self.conn.cursor()
         cursor.execute("INSERT INTO items (name, location, quantity, minQuantity) VALUES (?, ?, ?, ?)", (item.name, item.location, item.quantity, item.minQuantity))
         
-        item.ID = cursor.lastrowid #set item ID to new one genned by sql
-        self.conn.commit()
-        return item
+        item.ID = cursor.lastrowid #set item ID to new one (next incremented value), index provided by db.
+        self.conn.commit()  #save changes
+        return item #return item with given ID.
     
     def remove_item(self, itemID): #add item obj to db
         cursor = self.conn.cursor()
@@ -41,14 +41,15 @@ class ItemDB:
 
     def get_items(self, term):
         cursor = self.conn.cursor()
-        term = f"%{term}%"
+        term = f"%{term}%" #wildcard characters surrounding search term, to allow for LIKE operator to search within the strings.
 
-        #select the item with the matching ID or name
+        #select the item with matching ID or name or loci
         cursor.execute("SELECT name, location, quantity, ID, minQuantity FROM items WHERE name LIKE ? OR location LIKE ? OR ID LIKE ?", (term, term, term))
         
-        rows = cursor.fetchall()
-        if rows: #if item found, create and return obj - index is in order of select statement.
-            return [Item(row[0], row[1], row[2], row[3], row[4]) for row in rows]
+        rows = cursor.fetchall() #fetch all matching rows
+
+        if rows: #if item(s) found, create and return obj - index is in order of select statement.
+            return [Item(row[0], row[1], row[2], row[3], row[4]) for row in rows] #return list of items.
         return None #ret none if not found
     
     def get_items_monitoring(self, lowStockOnly = False):
